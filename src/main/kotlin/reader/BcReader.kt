@@ -17,17 +17,13 @@ object BcReader {
         return data.int.toUInt()
     }
 
-    private fun readLong(data: ByteBuffer): ULong {
-        return data.long.toULong()
-    }
-
     private fun readAnySize(data: ByteBuffer): ULong {
         var result = 0uL
 
         for (i in 0 until 8) {
             val value = data.get().toULong()
 
-            result = result or (value and 0x7FuL) shl i * 7
+            result = result or (value and 0x7FuL shl i * 7)
 
             if (value and 0x80uL == 0uL) {
                 break
@@ -59,7 +55,7 @@ object BcReader {
             2 -> Number(data.double)
             3 -> StringRef(this.readAnySize(data))
             4 -> ImportRef(this.readInt(data))
-            5 -> Table(this.readList(data, ::readLong))
+            5 -> Table(this.readList(data, ::readAnySize))
             6 -> ClosureRef(this.readAnySize(data))
             else -> throw IllegalStateException("Invalid constant type")
         }
@@ -104,6 +100,7 @@ object BcReader {
     }
 
     private fun readDebugInfo(data: ByteBuffer, len: Int): DebugInfo {
+        val lineDefined = this.readAnySize(data)
         val debugName = this.readAnySize(data)
         val lineList = if (this.readBoolean(data))
             this.readLineInfo(data, len)
@@ -119,6 +116,7 @@ object BcReader {
         }
 
         return DebugInfo(
+            lineDefined,
             debugName,
             lineList,
             localList,

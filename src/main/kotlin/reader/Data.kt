@@ -27,6 +27,7 @@ data class MetaData(
 )
 
 data class DebugInfo(
+    val lineDefined: ULong,
     val debugName: ULong,
     val lineInfo: List<UInt>,
     val localList: List<Local>,
