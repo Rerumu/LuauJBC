@@ -37,7 +37,7 @@ class StringCacheBuilder(private val stringList: List<ByteArray>) {
             val ownerName = this.builder.toTypeDescription().internalName
 
             this.stringList.forEachIndexed { i, v ->
-                val encoded = String(v, StandardCharsets.UTF_8)
+                val encoded = String(v, StandardCharsets.ISO_8859_1)
 
                 visitor.visitTypeInsn(Opcodes.NEW, TypeCache.STRING.name)
                 visitor.visitInsn(Opcodes.DUP)

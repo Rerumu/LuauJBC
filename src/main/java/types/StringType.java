@@ -13,7 +13,7 @@ public class StringType extends ValueType {
     }
 
     public StringType(String data) {
-        this(data.getBytes(StandardCharsets.UTF_8));
+        this(data.getBytes(StandardCharsets.ISO_8859_1));
     }
 
     @Override
@@ -32,7 +32,7 @@ public class StringType extends ValueType {
 
     @Override
     public String toString() {
-        return new String(this.data, StandardCharsets.UTF_8);
+        return new String(this.data, StandardCharsets.ISO_8859_1);
     }
 
     @Override
