@@ -3,8 +3,14 @@ package bytecode
 class InstructionDecoder {
     private var temporary = 0
 
-    fun load(instruction: Int) {
-        this.temporary = instruction
+    fun load(list: List<Int>, index: Int): Boolean {
+        return if (index < list.size) {
+            this.temporary = list[index]
+
+            true
+        } else {
+            false
+        }
     }
 
     fun getOp(): Opcode {

@@ -132,6 +132,7 @@ enum class Opcode {
             JumpIfNotConstant,
             FastCall2,
             FastCall2K -> 2
+
             else -> 1
         }
     }
