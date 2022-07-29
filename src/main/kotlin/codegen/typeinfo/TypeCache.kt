@@ -4,7 +4,7 @@ import bytecode.Constant
 import net.bytebuddy.jar.asm.Type
 import types.*
 
-class TypeInfo(val klass: Class<out Any>) {
+data class TypeInfo(val klass: Class<out Any>) {
     val name = Type.getInternalName(klass)!!
     val parameter = Type.getDescriptor(klass)!!
 }
