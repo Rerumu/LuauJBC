@@ -1,6 +1,6 @@
 package codegen
 
-import codegen.typeinfo.MethodInfo
+import codegen.typeinfo.MethodCache
 import codegen.typeinfo.TypeCache
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.description.modifier.FieldManifestation
@@ -38,18 +38,14 @@ class StringCacheBuilder(private val stringList: List<ByteArray>) {
 
             this.stringList.forEachIndexed { i, v ->
                 val encoded = String(v, StandardCharsets.ISO_8859_1)
+                val method = MethodCache.STRING_CONSTRUCTOR
+                val cached = TypeCache.STRING
 
-                visitor.visitTypeInsn(Opcodes.NEW, TypeCache.STRING.name)
+                visitor.visitTypeInsn(Opcodes.NEW, cached.name)
                 visitor.visitInsn(Opcodes.DUP)
                 visitor.visitLdcInsn(encoded)
-                visitor.visitMethodInsn(
-                    Opcodes.INVOKESPECIAL,
-                    TypeCache.STRING.name,
-                    "<init>",
-                    MethodInfo.STRING_CONSTRUCTOR,
-                    false
-                )
-                visitor.visitFieldInsn(Opcodes.PUTSTATIC, ownerName, "data$$i", TypeCache.STRING.parameter)
+                visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, cached.name, method.name, method.descriptor, false)
+                visitor.visitFieldInsn(Opcodes.PUTSTATIC, ownerName, "data$$i", cached.parameter)
             }
 
             ByteCodeAppender.Size(3, 0)

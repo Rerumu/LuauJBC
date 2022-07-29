@@ -1,6 +1,7 @@
 package codegen.appender
 
 import bytecode.Constant
+import codegen.typeinfo.MethodCache
 import codegen.typeinfo.MethodInfo
 import codegen.typeinfo.TypeCache
 import net.bytebuddy.description.method.MethodDescription
@@ -13,28 +14,30 @@ class DataAppender(private val data: List<Constant>) : ByteCodeAppender {
     private lateinit var owner: String
     private lateinit var visitor: MethodVisitor
 
-    private fun genNil() {
+    private fun pushObject(name: String) {
+        this.visitor.visitTypeInsn(Opcodes.NEW, name)
+        this.visitor.visitInsn(Opcodes.DUP)
+    }
+
+    private fun callConstructor(name: String, method: MethodInfo) {
+        this.visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, name, method.name, method.descriptor, false)
+    }
+
+    private fun pushNil() {
         this.visitor.visitFieldInsn(Opcodes.GETSTATIC, TypeCache.NIL.name, "INSTANCE", TypeCache.NIL.parameter)
     }
 
-    private fun genBoolean(name: String) {
+    private fun pushBoolean(name: String) {
         this.visitor.visitFieldInsn(Opcodes.GETSTATIC, TypeCache.BOOLEAN.name, name, TypeCache.BOOLEAN.parameter)
     }
 
-    private fun genNumber(value: Double) {
-        this.visitor.visitTypeInsn(Opcodes.NEW, TypeCache.NUMBER.name)
-        this.visitor.visitInsn(Opcodes.DUP)
+    private fun pushNumber(value: Double) {
+        this.pushObject(TypeCache.NUMBER.name)
         this.visitor.visitLdcInsn(value)
-        this.visitor.visitMethodInsn(
-            Opcodes.INVOKESPECIAL,
-            TypeCache.NUMBER.name,
-            "<init>",
-            MethodInfo.NUMBER_CONSTRUCTOR,
-            false
-        )
+        this.callConstructor(TypeCache.NUMBER.name, MethodCache.NUMBER_CONSTRUCTOR)
     }
 
-    private fun genString(index: Int) {
+    private fun pushString(index: Int) {
         if (index == 0) {
             this.visitor.visitInsn(Opcodes.ACONST_NULL)
         } else {
@@ -44,57 +47,46 @@ class DataAppender(private val data: List<Constant>) : ByteCodeAppender {
         }
     }
 
-    private fun genClosure(index: Int) {
+    private fun pushClosure(index: Int) {
         val name = "luau/Func$$index"
 
-        this.visitor.visitTypeInsn(Opcodes.NEW, name)
-        this.visitor.visitInsn(Opcodes.DUP)
-        this.visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, name, "<init>", MethodInfo.CLOSURE_CONSTRUCTOR, false)
+        this.pushObject(name)
+        this.callConstructor(name, MethodCache.CLOSURE_CONSTRUCTOR)
     }
 
-    private fun genGetConstant(index: Int) {
+    private fun pushConstantIndex(index: Int) {
         val descriptor = TypeCache.fromConstant(data[index]).parameter
 
         this.visitor.visitFieldInsn(Opcodes.GETSTATIC, this.owner, "data$$index", descriptor)
     }
 
-    private fun genTable(keyList: List<Int>) {
-        this.visitor.visitTypeInsn(Opcodes.NEW, TypeCache.TABLE.name)
-        this.visitor.visitInsn(Opcodes.DUP)
+    private fun pushTable(keyList: List<Int>) {
+        val cached = TypeCache.TABLE.name
+        val tableSet = MethodCache.TABLE_SET_FIELD
+
+        this.pushObject(cached)
         this.visitor.visitLdcInsn(keyList.size)
-        this.visitor.visitMethodInsn(
-            Opcodes.INVOKESPECIAL,
-            TypeCache.TABLE.name,
-            "<init>",
-            MethodInfo.TABLE_CONSTRUCTOR,
-            false
-        )
+        this.callConstructor(cached, MethodCache.TABLE_CONSTRUCTOR)
 
         for (key in keyList) {
             this.visitor.visitInsn(Opcodes.DUP)
-            this.genGetConstant(key)
+            this.pushConstantIndex(key)
             this.visitor.visitInsn(Opcodes.ACONST_NULL)
-            this.visitor.visitMethodInsn(
-                Opcodes.INVOKEVIRTUAL,
-                TypeCache.TABLE.name,
-                "set_field",
-                MethodInfo.TABLE_SET_FIELD,
-                false
-            )
+            this.visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, cached, tableSet.name, tableSet.descriptor, false)
         }
     }
 
     // TODO: Have environment so we can generate `ImportRef`s
-    private fun genConstant(const: Constant) {
+    private fun pushConstant(const: Constant) {
         when (const) {
-            bytecode.Nil -> this.genNil()
-            bytecode.True -> this.genBoolean("TRUE")
-            bytecode.False -> this.genBoolean("FALSE")
-            is bytecode.Number -> this.genNumber(const.value)
-            is bytecode.StringRef -> this.genString(const.ref)
-            is bytecode.ClosureRef -> this.genClosure(const.ref)
+            bytecode.Nil -> this.pushNil()
+            bytecode.True -> this.pushBoolean("TRUE")
+            bytecode.False -> this.pushBoolean("FALSE")
+            is bytecode.Number -> this.pushNumber(const.value)
+            is bytecode.StringRef -> this.pushString(const.ref)
+            is bytecode.ClosureRef -> this.pushClosure(const.ref)
             is bytecode.ImportRef -> this.visitor.visitInsn(Opcodes.ACONST_NULL)
-            is bytecode.Table -> this.genTable(const.data)
+            is bytecode.Table -> this.pushTable(const.data)
         }
     }
 
@@ -109,7 +101,7 @@ class DataAppender(private val data: List<Constant>) : ByteCodeAppender {
         this.data.forEachIndexed { index, value ->
             val descriptor = TypeCache.fromConstant(value).parameter
 
-            this.genConstant(value)
+            this.pushConstant(value)
             visitor.visitFieldInsn(Opcodes.PUTSTATIC, this.owner, "data$$index", descriptor)
         }
 
