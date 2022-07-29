@@ -1,5 +1,6 @@
 package codegen.typeinfo
 
+import builtin.Auxiliary
 import bytecode.Constant
 import net.bytebuddy.jar.asm.Type
 import types.*
@@ -17,6 +18,8 @@ object TypeCache {
     val STRING = TypeInfo(StringType::class.java)
     val CLOSURE = TypeInfo(ClosureType::class.java)
     val TABLE = TypeInfo(TableType::class.java)
+
+    val AUXILIARY = TypeInfo(Auxiliary::class.java)
 
     fun fromConstant(constant: Constant): TypeInfo {
         return when (constant) {

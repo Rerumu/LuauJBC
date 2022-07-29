@@ -1,4 +1,4 @@
-package reflection;
+package builtin;
 
 public @interface Reflection {
     String signature();

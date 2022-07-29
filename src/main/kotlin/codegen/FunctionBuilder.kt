@@ -1,5 +1,6 @@
 package codegen
 
+import builtin.Reflection
 import bytecode.Constant
 import bytecode.Function
 import codegen.appender.CodeAppender
@@ -13,7 +14,6 @@ import net.bytebuddy.description.modifier.Visibility
 import net.bytebuddy.dynamic.DynamicType
 import net.bytebuddy.implementation.Implementation
 import net.bytebuddy.matcher.ElementMatchers
-import reflection.Reflection
 import types.ClosureType
 import types.TableType
 import types.ValueType
