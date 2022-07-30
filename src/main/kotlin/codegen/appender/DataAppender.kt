@@ -14,13 +14,12 @@ class DataAppender(private val data: List<Constant>) : ByteCodeAppender {
     private lateinit var owner: String
     private lateinit var visitor: MethodVisitor
 
-    private fun pushObject(name: String) {
-        this.visitor.visitTypeInsn(Opcodes.NEW, name)
-        this.visitor.visitInsn(Opcodes.DUP)
+    private fun callVirtual(name: String, method: MethodInfo) {
+        this.visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, method.name, method.descriptor, false)
     }
 
-    private fun callConstructor(name: String, method: MethodInfo) {
-        this.visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, name, method.name, method.descriptor, false)
+    private fun callStatic(name: String, method: MethodInfo) {
+        this.visitor.visitMethodInsn(Opcodes.INVOKESTATIC, name, method.name, method.descriptor, false)
     }
 
     private fun pushNil() {
@@ -32,9 +31,8 @@ class DataAppender(private val data: List<Constant>) : ByteCodeAppender {
     }
 
     private fun pushNumber(value: Double) {
-        this.pushObject(TypeCache.NUMBER.name)
         this.visitor.visitLdcInsn(value)
-        this.callConstructor(TypeCache.NUMBER.name, MethodCache.NUMBER_CONSTRUCTOR)
+        this.callStatic(TypeCache.NUMBER.name, MethodCache.NUMBER_FROM)
     }
 
     private fun pushString(index: Int) {
@@ -48,31 +46,27 @@ class DataAppender(private val data: List<Constant>) : ByteCodeAppender {
     }
 
     private fun pushClosure(index: Int) {
-        val name = "luau/Func$$index"
-
-        this.pushObject(name)
-        this.callConstructor(name, MethodCache.CLOSURE_CONSTRUCTOR)
+        // TODO: Create without upvalues
+        this.visitor.visitInsn(Opcodes.ACONST_NULL)
     }
 
     private fun pushConstantIndex(index: Int) {
-        val descriptor = TypeCache.fromConstant(data[index]).parameter
+        val descriptor = TypeCache.fromConstant(this.data[index]).parameter
 
         this.visitor.visitFieldInsn(Opcodes.GETSTATIC, this.owner, "data$$index", descriptor)
     }
 
     private fun pushTable(keyList: List<Int>) {
         val cached = TypeCache.TABLE.name
-        val tableSet = MethodCache.TABLE_SET_FIELD
 
-        this.pushObject(cached)
         this.visitor.visitLdcInsn(keyList.size)
-        this.callConstructor(cached, MethodCache.TABLE_CONSTRUCTOR)
+        this.callStatic(cached, MethodCache.TABLE_FROM)
 
         for (key in keyList) {
             this.visitor.visitInsn(Opcodes.DUP)
             this.pushConstantIndex(key)
             this.visitor.visitInsn(Opcodes.ACONST_NULL)
-            this.visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, cached, tableSet.name, tableSet.descriptor, false)
+            this.callVirtual(cached, MethodCache.TABLE_SET_FIELD)
         }
     }
 

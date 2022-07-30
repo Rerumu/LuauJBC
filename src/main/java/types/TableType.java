@@ -4,11 +4,23 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
-public class TableType extends ValueType {
+public final class TableType extends ValueType {
     private final HashMap<ValueType, ValueType> map;
 
-    public TableType(int size) {
-        map = new HashMap<>(size);
+    private TableType(int size) {
+        this.map = new HashMap<>(size);
+    }
+
+    private TableType(TableType other) {
+        this.map = new HashMap<>(other.map);
+    }
+
+    public static TableType from(int size) {
+        return new TableType(size);
+    }
+
+    public static TableType copy(TableType other) {
+        return new TableType(other);
     }
 
     @Override
@@ -68,16 +80,16 @@ public class TableType extends ValueType {
 
     @Override
     public NumberType length() {
-        return new NumberType(this.map.size());
+        return NumberType.from(this.map.size());
     }
 
     @Override
-    public ValueType get_field(ValueType key) {
+    public ValueType getField(ValueType key) {
         return this.map.get(key);
     }
 
     @Override
-    public void set_field(ValueType key, ValueType value) {
+    public void setField(ValueType key, ValueType value) {
         this.map.put(key, value);
     }
 

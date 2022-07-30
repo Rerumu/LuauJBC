@@ -64,12 +64,12 @@ public abstract class ClosureType extends ValueType {
     }
 
     @Override
-    public ValueType get_field(ValueType key) {
+    public ValueType getField(ValueType key) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void set_field(ValueType key, ValueType value) {
+    public void setField(ValueType key, ValueType value) {
         throw new UnsupportedOperationException();
     }
 }

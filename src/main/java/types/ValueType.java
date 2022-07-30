@@ -5,6 +5,14 @@ public abstract class ValueType implements Comparable<ValueType> {
 
     public abstract double toNumber();
 
+    public final ValueType and(ValueType other) {
+        return this.toBoolean() ? other : this;
+    }
+
+    public final ValueType or(ValueType other) {
+        return this.toBoolean() ? this : other;
+    }
+
     public abstract BooleanType not();
 
     // For numbers
@@ -22,36 +30,12 @@ public abstract class ValueType implements Comparable<ValueType> {
 
     public abstract ValueType neg();
 
-    public final BooleanType equal(ValueType other) {
-        return BooleanType.from(this.equals(other));
-    }
-
-    public final BooleanType notEqual(ValueType other) {
-        return BooleanType.from(!this.equals(other));
-    }
-
-    public final BooleanType lessThan(ValueType other) {
-        return BooleanType.from(this.compareTo(other) < 0);
-    }
-
-    public final BooleanType lessThanOrEqual(ValueType other) {
-        return BooleanType.from(this.compareTo(other) <= 0);
-    }
-
-    public final BooleanType greaterThan(ValueType other) {
-        return BooleanType.from(this.compareTo(other) > 0);
-    }
-
-    public final BooleanType greaterThanOrEqual(ValueType other) {
-        return BooleanType.from(this.compareTo(other) >= 0);
-    }
-
     // For tables
     public abstract NumberType length();
 
-    public abstract ValueType get_field(ValueType key);
+    public abstract ValueType getField(ValueType key);
 
-    public abstract void set_field(ValueType key, ValueType value);
+    public abstract void setField(ValueType key, ValueType value);
 
     // For closures
     public abstract ValueType[] call(ValueType[] arguments);

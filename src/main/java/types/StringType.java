@@ -5,20 +5,28 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class StringType extends ValueType {
+public final class StringType extends ValueType {
+    @NotNull
     private final byte[] data;
 
-    public StringType(byte[] data) {
+    private StringType(@NotNull byte[] data) {
         this.data = data;
     }
 
-    public StringType(String data) {
-        this(data.getBytes(StandardCharsets.ISO_8859_1));
+    public static StringType from(String data) {
+        var array = data.getBytes(StandardCharsets.ISO_8859_1);
+
+        return new StringType(array);
     }
 
     @Override
     public boolean equals(Object object) {
         return object instanceof StringType other && Arrays.equals(this.data, other.data);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(this.data);
     }
 
     @Override
@@ -87,16 +95,16 @@ public class StringType extends ValueType {
 
     @Override
     public NumberType length() {
-        return new NumberType(this.data.length);
+        return NumberType.from(this.data.length);
     }
 
     @Override
-    public ValueType get_field(ValueType key) {
+    public ValueType getField(ValueType key) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void set_field(ValueType key, ValueType value) {
+    public void setField(ValueType key, ValueType value) {
         throw new UnsupportedOperationException();
     }
 

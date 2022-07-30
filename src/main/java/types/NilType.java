@@ -2,7 +2,7 @@ package types;
 
 import org.jetbrains.annotations.NotNull;
 
-public class NilType extends ValueType {
+public final class NilType extends ValueType {
     public static final NilType SINGLETON = new NilType();
 
     private NilType() {
@@ -16,6 +16,11 @@ public class NilType extends ValueType {
     @Override
     public int compareTo(@NotNull ValueType other) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+        return "nil";
     }
 
     @Override
@@ -74,12 +79,12 @@ public class NilType extends ValueType {
     }
 
     @Override
-    public ValueType get_field(ValueType key) {
+    public ValueType getField(ValueType key) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void set_field(ValueType key, ValueType value) {
+    public void setField(ValueType key, ValueType value) {
         throw new UnsupportedOperationException();
     }
 

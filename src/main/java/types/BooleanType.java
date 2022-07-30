@@ -2,7 +2,9 @@ package types;
 
 import org.jetbrains.annotations.NotNull;
 
-public class BooleanType extends ValueType {
+import java.util.Objects;
+
+public final class BooleanType extends ValueType {
     private static final BooleanType TRUE = new BooleanType(true);
     private static final BooleanType FALSE = new BooleanType(false);
 
@@ -13,7 +15,7 @@ public class BooleanType extends ValueType {
     }
 
     public static BooleanType from(boolean data) {
-        return data ? TRUE : FALSE;
+        return data ? BooleanType.TRUE : BooleanType.FALSE;
     }
 
     @Override
@@ -22,13 +24,23 @@ public class BooleanType extends ValueType {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(this.data);
+    }
+
+    @Override
     public int compareTo(@NotNull ValueType other) {
         throw new UnsupportedOperationException();
     }
 
     @Override
+    public String toString() {
+        return Boolean.toString(this.data);
+    }
+
+    @Override
     public boolean toBoolean() {
-        return data;
+        return this.data;
     }
 
     @Override
@@ -77,12 +89,12 @@ public class BooleanType extends ValueType {
     }
 
     @Override
-    public ValueType get_field(ValueType key) {
+    public ValueType getField(ValueType key) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void set_field(ValueType key, ValueType value) {
+    public void setField(ValueType key, ValueType value) {
         throw new UnsupportedOperationException();
     }
 

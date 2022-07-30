@@ -38,17 +38,15 @@ class StringCacheBuilder(private val stringList: List<ByteArray>) {
 
             this.stringList.forEachIndexed { i, v ->
                 val encoded = String(v, StandardCharsets.ISO_8859_1)
-                val method = MethodCache.STRING_CONSTRUCTOR
+                val method = MethodCache.STRING_FROM
                 val cached = TypeCache.STRING
 
-                visitor.visitTypeInsn(Opcodes.NEW, cached.name)
-                visitor.visitInsn(Opcodes.DUP)
                 visitor.visitLdcInsn(encoded)
-                visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, cached.name, method.name, method.descriptor, false)
+                visitor.visitMethodInsn(Opcodes.INVOKESTATIC, cached.name, method.name, method.descriptor, false)
                 visitor.visitFieldInsn(Opcodes.PUTSTATIC, ownerName, "data$$i", cached.parameter)
             }
 
-            ByteCodeAppender.Size(3, 0)
+            ByteCodeAppender.Size(1, 0)
         }
     }
 }

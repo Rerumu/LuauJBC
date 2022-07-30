@@ -2,11 +2,17 @@ package types;
 
 import org.jetbrains.annotations.NotNull;
 
-public class NumberType extends ValueType {
+import java.util.Objects;
+
+public final class NumberType extends ValueType {
     final double data;
 
-    public NumberType(double data) {
+    private NumberType(double data) {
         this.data = data;
+    }
+
+    public static NumberType from(double data) {
+        return new NumberType(data);
     }
 
     @Override
@@ -15,8 +21,18 @@ public class NumberType extends ValueType {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(this.data);
+    }
+
+    @Override
     public int compareTo(@NotNull ValueType other) {
         return Double.compare(this.data, other.toNumber());
+    }
+
+    @Override
+    public String toString() {
+        return Double.toString(this.data);
     }
 
     @Override
@@ -26,7 +42,7 @@ public class NumberType extends ValueType {
 
     @Override
     public double toNumber() {
-        return data;
+        return this.data;
     }
 
     @Override
@@ -72,12 +88,12 @@ public class NumberType extends ValueType {
     }
 
     @Override
-    public ValueType get_field(ValueType key) {
+    public ValueType getField(ValueType key) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void set_field(ValueType key, ValueType value) {
+    public void setField(ValueType key, ValueType value) {
         throw new UnsupportedOperationException();
     }
 
