@@ -46,8 +46,11 @@ class DataAppender(private val data: List<Constant>) : ByteCodeAppender {
     }
 
     private fun pushClosure(index: Int) {
-        // TODO: Create without upvalues
-        this.visitor.visitInsn(Opcodes.ACONST_NULL)
+        val name = "luau/Func$$index"
+
+        this.visitor.visitTypeInsn(Opcodes.NEW, name)
+        this.visitor.visitInsn(Opcodes.DUP)
+        this.visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, name, "<init>", "()V", false)
     }
 
     private fun pushConstantIndex(index: Int) {

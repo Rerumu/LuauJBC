@@ -353,6 +353,49 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
         this.visitor.visitInsn(Opcodes.POP)
     }
 
+    private fun captureUpValue(decoder: InstructionDecoder) {
+        val index = decoder.getB()
+
+        when (decoder.getA()) {
+            // Value capture
+            0, 1 -> this.getRegister(index)
+            // UpVal capture
+            2, 3 -> this.pushSelfField("up$$index", TypeCache.VALUE.parameter)
+        }
+    }
+
+    private fun captureUpValueList(decoder: InstructionDecoder, position: Int) {
+        // We must reset the `decoder` after using it for look-ahead
+        this.visitor.visitInsn(Opcodes.DUP)
+
+        val index = decoder.getD()
+        var offset = position + 1
+
+        while (decoder.load(this.instructList, offset) && decoder.getOp() == Opcode.Capture) {
+            this.captureUpValue(decoder)
+
+            offset += 1
+        }
+
+        val paramList = TypeCache.VALUE.parameter.repeat(offset - position - 1)
+        val info = MethodInfo("setUpValueList", "($paramList)V")
+
+        decoder.load(this.instructList, position)
+        this.callVirtual("luau/Func$$index", info)
+    }
+
+    private fun loadClosure(decoder: InstructionDecoder, position: Int) {
+        val name = "luau/Func$" + decoder.getD()
+
+        this.visitor.visitTypeInsn(Opcodes.NEW, name)
+        this.visitor.visitInsn(Opcodes.DUP)
+        this.visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, name, "<init>", "()V", false)
+
+        this.setRegister(decoder.getA())
+        this.getRegister(decoder.getA())
+        this.captureUpValueList(decoder, position)
+    }
+
     private fun pushArrayRange(start: Int, last: Int) {
         this.visitor.visitLdcInsn(last - start + 1)
         this.visitor.visitTypeInsn(Opcodes.ANEWARRAY, TypeCache.VALUE.name)
@@ -475,10 +518,7 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
             Opcode.SetTableKey -> this.storeTableFieldK(decoder, position)
             Opcode.GetTableIndex -> this.loadTableFieldI(decoder)
             Opcode.SetTableIndex -> this.storeTableFieldI(decoder)
-            Opcode.NewClosure -> {
-                // TODO
-                this.loadNil(decoder.getA())
-            }
+            Opcode.NewClosure -> this.loadClosure(decoder, position)
 
             Opcode.NameCall -> {
                 this.loadTableFieldK(decoder, position)

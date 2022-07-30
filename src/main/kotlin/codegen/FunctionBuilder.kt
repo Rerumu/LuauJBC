@@ -5,6 +5,7 @@ import bytecode.Constant
 import bytecode.Function
 import codegen.appender.CodeAppender
 import codegen.appender.DataAppender
+import codegen.appender.UpValueAppender
 import codegen.typeinfo.TypeCache
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.description.modifier.FieldManifestation
@@ -21,6 +22,7 @@ import types.ValueType
 private val CLASS_MODIFIER = ModifierContributor.Resolver.of(Visibility.PUBLIC, TypeManifestation.FINAL).resolve()
 private val PRV_F_MODIFIER = ModifierContributor.Resolver.of(Visibility.PRIVATE, FieldManifestation.FINAL).resolve()
 private val PRV_MODIFIER = Visibility.PRIVATE.mask
+private val PUB_MODIFIER = Visibility.PUBLIC.mask
 
 class FunctionBuilder(private val resolver: StringResolver, private val function: Function) {
     private var builder = ByteBuddy().subclass(ClosureType::class.java)
@@ -71,10 +73,7 @@ class FunctionBuilder(private val resolver: StringResolver, private val function
     }
 
     private fun addConstantList() {
-        val appender = DataAppender(this.function.constantList)
-
         this.function.constantList.forEachIndexed { i, c -> this.addConstant(i, c) }
-        this.builder = this.builder.initializer(appender)
     }
 
     private fun addEnvironment() {
@@ -99,9 +98,17 @@ class FunctionBuilder(private val resolver: StringResolver, private val function
     }
 
     private fun addCode() {
-        val appender = CodeAppender(this.resolver, this.function)
+        val dataAppender = DataAppender(this.function.constantList)
+        val codeAppender = CodeAppender(this.resolver, this.function)
+        val upValueAppender = UpValueAppender(this.function.metaData.numUpValue)
+
+        this.builder = this.builder.initializer(dataAppender)
 
         this.builder = this.builder.method(ElementMatchers.named("call"))
-            .intercept(Implementation.Simple(appender))
+            .intercept(Implementation.Simple(codeAppender))
+
+        this.builder = this.builder.defineMethod("setUpValueList", Void::class.java, PUB_MODIFIER)
+            .withParameters(upValueAppender.getParameterList())
+            .intercept(Implementation.Simple(upValueAppender))
     }
 }
