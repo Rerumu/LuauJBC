@@ -1,4 +1,4 @@
-package builtin;
+package template;
 
 import org.jetbrains.annotations.NotNull;
 import types.NumberType;
