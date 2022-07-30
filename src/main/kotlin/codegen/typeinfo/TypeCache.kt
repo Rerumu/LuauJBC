@@ -1,8 +1,10 @@
 package codegen.typeinfo
 
-import builtin.Auxiliary
+import BuiltIn
 import bytecode.Constant
 import net.bytebuddy.jar.asm.Type
+import template.Auxiliary
+import template.Program
 import types.*
 
 data class TypeInfo(val klass: Class<out Any>) {
@@ -20,6 +22,8 @@ object TypeCache {
     val TABLE = TypeInfo(TableType::class.java)
 
     val AUXILIARY = TypeInfo(Auxiliary::class.java)
+    val PROGRAM = TypeInfo(Program::class.java)
+    val BUILTIN = TypeInfo(BuiltIn::class.java)
 
     fun fromConstant(constant: Constant): TypeInfo {
         return when (constant) {

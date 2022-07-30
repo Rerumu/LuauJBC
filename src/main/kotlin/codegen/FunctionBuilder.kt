@@ -1,6 +1,5 @@
 package codegen
 
-import builtin.Reflection
 import bytecode.Constant
 import bytecode.Function
 import codegen.appender.CodeAppender
@@ -8,19 +7,18 @@ import codegen.appender.DataAppender
 import codegen.appender.UpValueAppender
 import codegen.typeinfo.TypeCache
 import net.bytebuddy.ByteBuddy
-import net.bytebuddy.description.modifier.FieldManifestation
-import net.bytebuddy.description.modifier.ModifierContributor
-import net.bytebuddy.description.modifier.TypeManifestation
-import net.bytebuddy.description.modifier.Visibility
+import net.bytebuddy.description.modifier.*
 import net.bytebuddy.dynamic.DynamicType
 import net.bytebuddy.implementation.Implementation
 import net.bytebuddy.matcher.ElementMatchers
+import template.Reflection
 import types.ClosureType
-import types.TableType
 import types.ValueType
 
 private val CLASS_MODIFIER = ModifierContributor.Resolver.of(Visibility.PUBLIC, TypeManifestation.FINAL).resolve()
-private val PRV_F_MODIFIER = ModifierContributor.Resolver.of(Visibility.PRIVATE, FieldManifestation.FINAL).resolve()
+private val PRV_SF_MODIFIER =
+    ModifierContributor.Resolver.of(Visibility.PRIVATE, Ownership.STATIC, FieldManifestation.FINAL).resolve()
+
 private val PRV_MODIFIER = Visibility.PRIVATE.mask
 private val PUB_MODIFIER = Visibility.PUBLIC.mask
 
@@ -32,7 +30,6 @@ class FunctionBuilder(private val resolver: StringResolver, private val function
 
         this.addReflection()
         this.addConstantList()
-        this.addEnvironment()
         this.addUpValueList()
         this.addCode()
 
@@ -69,15 +66,11 @@ class FunctionBuilder(private val resolver: StringResolver, private val function
     private fun addConstant(index: Int, constant: Constant) {
         val typeClass = TypeCache.fromConstant(constant).klass
 
-        this.builder = this.builder.defineField("data$$index", typeClass, PRV_F_MODIFIER)
+        this.builder = this.builder.defineField("data$$index", typeClass, PRV_SF_MODIFIER)
     }
 
     private fun addConstantList() {
         this.function.constantList.forEachIndexed { i, c -> this.addConstant(i, c) }
-    }
-
-    private fun addEnvironment() {
-        this.builder = this.builder.defineField("environment", TableType::class.java, PRV_MODIFIER)
     }
 
     private fun getUpValuesListed(): String {
@@ -107,7 +100,7 @@ class FunctionBuilder(private val resolver: StringResolver, private val function
         this.builder = this.builder.method(ElementMatchers.named("call"))
             .intercept(Implementation.Simple(codeAppender))
 
-        this.builder = this.builder.defineMethod("setUpValueList", Void::class.java, PUB_MODIFIER)
+        this.builder = this.builder.defineMethod("setUpValueList", Void.TYPE, PUB_MODIFIER)
             .withParameters(upValueAppender.getParameterList())
             .intercept(Implementation.Simple(upValueAppender))
     }

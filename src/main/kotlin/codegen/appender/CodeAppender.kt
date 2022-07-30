@@ -155,6 +155,13 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
         this.visitor.visitFieldInsn(Opcodes.GETSTATIC, this.owner, name, descriptor)
     }
 
+    private fun pushEnvironment() {
+        val name = TypeCache.BUILTIN.name
+        val descriptor = TypeCache.TABLE.parameter
+
+        this.visitor.visitFieldInsn(Opcodes.GETSTATIC, name, "INSTANCE", descriptor)
+    }
+
     private fun callVirtual(name: String, method: MethodInfo) {
         this.visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, method.name, method.descriptor, false)
     }
@@ -244,7 +251,7 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
     private fun loadImport(decoder: InstructionDecoder, position: Int) {
         val data = this.instructList[position + 1]
 
-        this.pushSelfField("environment", TypeCache.TABLE.parameter)
+        this.pushEnvironment()
 
         for (i in 0 until (data ushr 30)) {
             val id = data shr (20 - i * 10) and 0x3FF
@@ -259,7 +266,7 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
     private fun loadGlobal(decoder: InstructionDecoder, position: Int) {
         val index = this.instructList[position + 1]
 
-        this.pushSelfField("environment", TypeCache.TABLE.parameter)
+        this.pushEnvironment()
         this.pushSelfStatic("data$$index", TypeCache.STRING.parameter)
         this.callVirtual(TypeCache.TABLE.name, MethodCache.TABLE_GET_FIELD)
         this.setRegister(decoder.getA())
@@ -269,7 +276,7 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
         val index = this.instructList[position + 1]
 
         this.getRegister(decoder.getA())
-        this.pushSelfField("environment", TypeCache.TABLE.parameter)
+        this.pushEnvironment()
         this.pushSelfStatic("data$$index", TypeCache.STRING.parameter)
         this.callVirtual(TypeCache.TABLE.name, MethodCache.TABLE_SET_FIELD)
     }
@@ -277,7 +284,7 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
     private fun loadTableField(decoder: InstructionDecoder) {
         this.getRegister(decoder.getB())
         this.getRegister(decoder.getC())
-        this.callVirtual(TypeCache.TABLE.name, MethodCache.TABLE_GET_FIELD)
+        this.callVirtual(TypeCache.VALUE.name, MethodCache.TABLE_GET_FIELD)
         this.setRegister(decoder.getA())
     }
 
@@ -285,13 +292,13 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
         this.getRegister(decoder.getB())
         this.getRegister(decoder.getC())
         this.getRegister(decoder.getA())
-        this.callVirtual(TypeCache.TABLE.name, MethodCache.TABLE_SET_FIELD)
+        this.callVirtual(TypeCache.VALUE.name, MethodCache.TABLE_SET_FIELD)
     }
 
     private fun loadTableFieldK(decoder: InstructionDecoder, position: Int) {
         this.getRegister(decoder.getB())
         this.pushConstant(this.instructList[position + 1])
-        this.callVirtual(TypeCache.TABLE.name, MethodCache.TABLE_GET_FIELD)
+        this.callVirtual(TypeCache.VALUE.name, MethodCache.TABLE_GET_FIELD)
         this.setRegister(decoder.getA())
     }
 
@@ -299,13 +306,13 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
         this.getRegister(decoder.getB())
         this.pushConstant(this.instructList[position + 1])
         this.getRegister(decoder.getA())
-        this.callVirtual(TypeCache.TABLE.name, MethodCache.TABLE_SET_FIELD)
+        this.callVirtual(TypeCache.VALUE.name, MethodCache.TABLE_SET_FIELD)
     }
 
     private fun loadTableFieldI(decoder: InstructionDecoder) {
         this.getRegister(decoder.getB())
         this.pushInteger(decoder.getC())
-        this.callVirtual(TypeCache.TABLE.name, MethodCache.TABLE_GET_FIELD)
+        this.callVirtual(TypeCache.VALUE.name, MethodCache.TABLE_GET_FIELD)
         this.setRegister(decoder.getA())
     }
 
@@ -313,7 +320,7 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
         this.getRegister(decoder.getB())
         this.pushInteger(decoder.getC())
         this.getRegister(decoder.getA())
-        this.callVirtual(TypeCache.TABLE.name, MethodCache.TABLE_SET_FIELD)
+        this.callVirtual(TypeCache.VALUE.name, MethodCache.TABLE_SET_FIELD)
     }
 
     private fun loadTable(decoder: InstructionDecoder, position: Int) {
@@ -430,7 +437,7 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
 
         this.getRegister(start)
         this.pushArrayRange(start + 1, paramLast)
-        this.callVirtual(TypeCache.CLOSURE.name, MethodCache.CLOSURE_CALL)
+        this.callVirtual(TypeCache.VALUE.name, MethodCache.CLOSURE_CALL)
         this.popArrayRange(start, returnLast)
     }
 
@@ -539,7 +546,12 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
 
             Opcode.JumpIfLessEqual -> this.jumpCompare(decoder, position, Opcodes.IFLE)
             Opcode.JumpIfLessThan -> this.jumpCompare(decoder, position, Opcodes.IFLT)
-            Opcode.JumpIfNotEqual -> this.jumpCompare(decoder, position, Opcodes.IFNE)
+            Opcode.JumpIfNotEqual -> {
+                this.getRegister(decoder.getA())
+                this.getRegister(this.instructList[position + 1])
+                this.jumpEqual(decoder, position, Opcodes.IFEQ)
+            }
+
             Opcode.JumpIfMoreThan -> this.jumpCompare(decoder, position, Opcodes.IFGT)
             Opcode.JumpIfMoreEqual -> this.jumpCompare(decoder, position, Opcodes.IFGE)
             Opcode.Add -> this.doBinOp(decoder, MethodCache.VALUE_ADD)
@@ -636,8 +648,25 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
             val end = this.findLabelContaining(local.endPc)
             val name = this.resolver.getString(local.name)
 
-            this.visitor.visitLocalVariable(name, TypeCache.VALUE.name, null, start, end, local.register + 1)
+            this.visitor.visitLocalVariable(name, TypeCache.VALUE.parameter, null, start, end, local.register + 1)
         }
+    }
+
+    private fun loadParameters() {
+        if (this.metaData.numParameter == 0) {
+            return
+        }
+
+        this.getRegister(0)
+
+        for (i in 0 until this.metaData.numParameter) {
+            this.visitor.visitInsn(Opcodes.DUP)
+            this.visitor.visitLdcInsn(i)
+            this.visitor.visitInsn(Opcodes.AALOAD)
+            this.setRegister(i)
+        }
+
+        this.visitor.visitInsn(Opcodes.POP)
     }
 
     override fun apply(
@@ -651,12 +680,10 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
 
         val decoder = InstructionDecoder()
 
-        for (block in this.blockList) {
-            this.addCodeBlock(block, decoder)
-        }
-
+        this.loadParameters()
+        this.blockList.forEach { this.addCodeBlock(it, decoder) }
         this.addLocalInfo()
 
-        return ByteCodeAppender.Size(1, this.metaData.maxStackSize + 1)
+        return ByteCodeAppender.Size(10, this.metaData.maxStackSize + 1)
     }
 }

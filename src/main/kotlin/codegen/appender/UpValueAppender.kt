@@ -39,6 +39,8 @@ class UpValueAppender(private val length: Int) : ByteCodeAppender {
             this.putSelfField("up$$i", TypeCache.VALUE.parameter)
         }
 
+        this.visitor.visitInsn(Opcodes.RETURN)
+
         return ByteCodeAppender.Size(1, length + 1)
     }
 }
