@@ -23,6 +23,10 @@ public final class TableType extends ValueType {
         return new TableType(other);
     }
 
+    public HashMap<ValueType, ValueType> getMap() {
+        return this.map;
+    }
+
     @Override
     public int compareTo(@NotNull ValueType object) {
         throw new UnsupportedOperationException();
