@@ -41,6 +41,6 @@ class UpValueAppender(private val length: Int) : ByteCodeAppender {
 
         this.visitor.visitInsn(Opcodes.RETURN)
 
-        return ByteCodeAppender.Size(1, length + 1)
+        return ByteCodeAppender.Size(2, length + 1)
     }
 }

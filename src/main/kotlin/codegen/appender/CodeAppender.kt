@@ -685,6 +685,6 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
         this.blockList.forEach { this.addCodeBlock(it, decoder) }
         this.addLocalInfo()
 
-        return ByteCodeAppender.Size(10, this.metaData.maxStackSize + 1)
+        return ByteCodeAppender.Size(4, this.metaData.maxStackSize + 2)
     }
 }
