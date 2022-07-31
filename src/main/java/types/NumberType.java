@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 public final class NumberType extends ValueType {
-    final double data;
+    private final double data;
 
     private NumberType(double data) {
         this.data = data;
