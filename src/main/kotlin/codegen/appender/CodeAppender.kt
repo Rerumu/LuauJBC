@@ -311,14 +311,14 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
 
     private fun loadTableFieldI(decoder: InstructionDecoder) {
         this.getRegister(decoder.getB())
-        this.pushInteger(decoder.getC())
+        this.pushInteger(decoder.getC() + 1)
         this.callVirtual(TypeCache.VALUE.name, MethodCache.TABLE_GET_FIELD)
         this.setRegister(decoder.getA())
     }
 
     private fun storeTableFieldI(decoder: InstructionDecoder) {
         this.getRegister(decoder.getB())
-        this.pushInteger(decoder.getC())
+        this.pushInteger(decoder.getC() + 1)
         this.getRegister(decoder.getA())
         this.callVirtual(TypeCache.VALUE.name, MethodCache.TABLE_SET_FIELD)
     }
