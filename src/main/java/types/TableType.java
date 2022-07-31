@@ -89,7 +89,7 @@ public final class TableType extends ValueType {
 
     @Override
     public ValueType getField(ValueType key) {
-        return this.map.get(key);
+        return this.map.getOrDefault(key, NilType.SINGLETON);
     }
 
     @Override
