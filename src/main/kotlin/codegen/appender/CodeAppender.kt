@@ -328,7 +328,8 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
         val hashSize = if (hashLog2 == -1) 0 else 1 shl hashLog2
         val arraySize = this.instructList[position + 1]
 
-        this.visitor.visitLdcInsn(hashSize + arraySize)
+        this.visitor.visitLdcInsn(hashSize)
+        this.visitor.visitLdcInsn(arraySize)
         this.callStatic(TypeCache.TABLE.name, MethodCache.TABLE_FROM)
         this.setRegister(decoder.getA())
     }

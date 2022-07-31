@@ -19,7 +19,7 @@ class Print extends ClosureType {
 
 
 public class BuiltIn {
-    public static TableType INSTANCE = TableType.from(0);
+    public static TableType INSTANCE = TableType.from(0, 0);
 
     static {
         var env = BuiltIn.INSTANCE;

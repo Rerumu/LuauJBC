@@ -63,6 +63,7 @@ class DataAppender(private val data: List<Constant>) : ByteCodeAppender {
         val cached = TypeCache.TABLE.name
 
         this.visitor.visitLdcInsn(keyList.size)
+        this.visitor.visitInsn(Opcodes.ICONST_0)
         this.callStatic(cached, MethodCache.TABLE_FROM)
 
         for (key in keyList) {
