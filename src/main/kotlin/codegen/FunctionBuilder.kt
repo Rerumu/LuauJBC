@@ -4,6 +4,7 @@ import bytecode.Constant
 import bytecode.Function
 import codegen.appender.CodeAppender
 import codegen.appender.DataAppender
+import codegen.appender.FrameComputing
 import codegen.appender.UpValueAppender
 import codegen.typeinfo.TypeCache
 import net.bytebuddy.ByteBuddy
@@ -26,7 +27,9 @@ class FunctionBuilder(private val resolver: StringResolver, private val function
     private var builder = ByteBuddy().subclass(ClosureType::class.java)
 
     fun getReady(index: Int): DynamicType.Unloaded<ClosureType> {
-        this.builder = this.builder.name("luau.Func$$index").modifiers(CLASS_MODIFIER)
+        this.builder = this.builder.name("luau.Func$$index")
+            .modifiers(CLASS_MODIFIER)
+            .visit(FrameComputing())
 
         this.addReflection()
         this.addConstantList()
