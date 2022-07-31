@@ -28,9 +28,9 @@ public class Auxiliary {
         }
 
         if (step.toNumber() > 0.0) {
-            return index.toNumber() < limit.toNumber();
+            return index.toNumber() <= limit.toNumber();
         } else {
-            return index.toNumber() > limit.toNumber();
+            return index.toNumber() >= limit.toNumber();
         }
     }
 }
