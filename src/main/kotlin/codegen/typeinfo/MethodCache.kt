@@ -26,8 +26,8 @@ object MethodCache {
     val VALUE_MINUS = MethodInfo("minus", "()Ltypes/ValueType;")
     val VALUE_LENGTH = MethodInfo("length", "()Ltypes/ValueType;")
 
-    val VALUE_EQUAL = MethodInfo("equals", "(Ltypes/ValueType;)Z")
-    val VALUE_COMPARE = MethodInfo("compareTo", "(Ltypes/ValueType;)I")
+    val VALUE_EQUAL = MethodInfo("equals", "(Ljava/lang/Object;)Z")
+    val VALUE_COMPARE = MethodInfo("compareTo", "(Ljava/lang/Object;)I")
     val VALUE_BOOLEAN = MethodInfo("toBoolean", "()Z;")
 
     val VALUE_CONCAT = MethodInfo("concatenate", "([Ltypes/ValueType;)Ltypes/ValueType;")
