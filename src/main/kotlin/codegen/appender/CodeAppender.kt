@@ -593,7 +593,7 @@ class CodeAppender(private val resolver: StringResolver, function: Function) : B
 
                 this.getRegister(start + 2)
                 this.getRegister(start + 1)
-                this.callVirtual(TypeCache.NUMBER.name, MethodCache.VALUE_ADD)
+                this.callVirtual(TypeCache.VALUE.name, MethodCache.VALUE_ADD)
                 this.setRegister(start + 2)
                 this.jumpAlways(position, decoder.getD() - 1)
             }
