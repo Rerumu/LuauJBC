@@ -1,1 +1,1 @@
-rootProject.name = "LuauJIT"
+rootProject.name = "LuauJBC"

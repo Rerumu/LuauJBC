@@ -51,13 +51,13 @@ fun addBuiltIn(file: File) {
 }
 
 fun main(file_list: Array<String>) {
-    if (file_list.size != 1) {
-        println("Must provide exactly one file!")
+    if (file_list.size != 2) {
+        println("Must provide input and output files!")
         return
     }
 
     val builder = ObjectBuilder(getModuleOf(file_list[0]))
-    val file = File("working_at/Luau.jar")
+    val file = File(file_list[1])
 
     builder.genEntryPoint().toJar(file, getManifest())
 
