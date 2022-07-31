@@ -47,7 +47,7 @@ public final class NumberType extends ValueType {
 
     @Override
     public BooleanType not() {
-        return BooleanType.from(false);
+        return BooleanType.FALSE;
     }
 
     @Override

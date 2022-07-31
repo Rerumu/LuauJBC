@@ -35,7 +35,7 @@ public final class NilType extends ValueType {
 
     @Override
     public BooleanType not() {
-        return BooleanType.from(true);
+        return BooleanType.TRUE;
     }
 
     @Override

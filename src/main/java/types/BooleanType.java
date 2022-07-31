@@ -5,17 +5,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 public final class BooleanType extends ValueType {
-    private static final BooleanType TRUE = new BooleanType(true);
-    private static final BooleanType FALSE = new BooleanType(false);
+    public static final BooleanType TRUE = new BooleanType(true);
+    public static final BooleanType FALSE = new BooleanType(false);
 
     private final boolean data;
 
     private BooleanType(boolean data) {
         this.data = data;
-    }
-
-    public static BooleanType from(boolean data) {
-        return data ? BooleanType.TRUE : BooleanType.FALSE;
     }
 
     @Override
@@ -50,7 +46,7 @@ public final class BooleanType extends ValueType {
 
     @Override
     public BooleanType not() {
-        return BooleanType.from(!this.data);
+        return this.data ? BooleanType.FALSE : BooleanType.TRUE;
     }
 
     @Override
